@@ -55,8 +55,7 @@ class Node(object):
         self.m = delay_mod
         self.n = delay_bias
         self.partner = None
-        self.next_send_time = start_time + latency + first_induced_delay
-        self.last_next_send_time = 0
+        self.next_send_time = None
         self.detected_intrusion = False
         self.intrusion_resolved = True
         self.real_intrusion = False
@@ -64,7 +63,6 @@ class Node(object):
         self.drop_resolved = False
         self.message_hash = 'legitimate'
         self.sending_hash = self.message_hash
-        self.wait = 0
 
     def rec_message(self, message):
         log(self.name,'recieved message',message,'at',self.current_time)
@@ -106,6 +104,8 @@ class Node(object):
             self.intrusion_resolved = False
             self.outgoing_delay = message['next_delay']
             self.sending_hash = message['hash']
+            #TODO: I think this is why it's not detecting all intrusions
+        self.start_send()
 
 
     def handle_dropped_packet(self):
@@ -120,12 +120,6 @@ class Node(object):
         if (not self.detected_drop) and self.current_time > self.should_rec_time + self.window_size:
             self.handle_dropped_packet()
         if self.current_time == self.next_send_time:
-            #print(self.current_time,self.name,'about to send')
-            self.last_next_send_time = self.next_send_time
-            self.wait_for_send()
-            self.wait = int(round(random.gauss(self.latency,self.jitter**0.5)))
-        if self.current_time == self.last_next_send_time+self.wait:
-            #print(self.current_time,self.name,'sent')
             message={'text':'this is a test message'}
             self.send_message(self.partner,message)
 
@@ -134,13 +128,13 @@ class Node(object):
         self.partner = other
 
 
-    def wait_for_send(self):
+    def start_send(self):
         self.next_send_time = self.current_time + self.calculate_send_delay()
 
 
     def calculate_send_delay(self):
         self.incoming_delay = self.gen_new_delay()
-        self.should_rec_time = self.current_time + self.latency + self.outgoing_delay + self.incoming_delay
+        self.should_rec_time = self.current_time + 2* self.latency + self.outgoing_delay + self.incoming_delay
         send_time = int(round(random.gauss(self.latency, self.jitter**0.5))) 
         return send_time + self.outgoing_delay
 
@@ -163,6 +157,7 @@ class Node(object):
         self.real_intrusion = False
 
         other.rec_message(message)
+        self.start_send()
 
 def run_simulation(latency, jitter, window_size, first_delay, delay_mod, delay_bias, max_time, intrusion_prob):
     alice = Node('alice',latency, jitter, window_size, 0, first_delay, delay_mod, delay_bias)
@@ -171,7 +166,7 @@ def run_simulation(latency, jitter, window_size, first_delay, delay_mod, delay_b
     alice.add_partner(bob)
     bob.add_partner(alice)
 
-    alice.wait_for_send()
+    alice.start_send()
 
     t = 0
     #while t <= max_time:
