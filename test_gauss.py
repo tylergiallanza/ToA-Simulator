@@ -12,8 +12,8 @@ def log(*outputs):
 num_authed = 0
 num_unauthed = 0
 num_dropped = 0
-num_intrusion = 0
 num_intrusion_resolved = 0
+num_intrusion_detected = 0
 num_intrusion_detected = 0
 num_dropped_recovered = 0
 
@@ -59,10 +59,7 @@ class Node(object):
         self.detected_intrusion = False
         self.intrusion_resolved = True
         self.real_intrusion = False
-        self.detected_drop = False
-        self.drop_resolved = False
-        self.message_hash = 'legitimate'
-        self.sending_hash = self.message_hash
+        self.dropped_retry = 0
 
     def rec_message(self, message):
         log(self.name,'recieved message',message,'at',self.current_time)
@@ -74,7 +71,7 @@ class Node(object):
             #Check if the partner got an intrusion
             if message['intrusion']:
                 #This would actually be hash checking
-                if message['hash'] == self.message_hash:
+                if message['text'] == 'this is a test message':
                     log(self.name,'verified last message')
                     self.intrusion_resolved = True
                     log_intrusion_resolved()
@@ -87,15 +84,14 @@ class Node(object):
                 self.detected_intrusion = False
                 self.intrusion_resolved = True
 
-            if message['dropped']:
+            if message['dropped_retry'] > 0:
                 #"Resend" the last message
 
-                self.drop_resolved = True
+                #Flag that we're resending
+                self.dropped_retry = 0
                 log_dropped_recovered()
-            if message['drop_resolved']:
-                self.detected_drop = False
-                self.drop_resolved = True
-
+            else:
+                self.dropped_retry = 0
             self.outgoing_delay = message['next_delay']
             self.start_send()
         else:
@@ -104,21 +100,19 @@ class Node(object):
             self.detected_intrusion = True
             self.intrusion_resolved = False
             self.outgoing_delay = message['next_delay']
-            self.sending_hash = message['hash']
-            #TODO: I think this is why it's not detecting all intrusions
             self.start_send()
 
 
     def handle_dropped_packet(self):
+        #TODO
         log('dropped: should have recieved message by',self.should_rec_time+self.window_size)
-        self.detected_drop = True
-        self.drop_resolved = False
+        self.dropped_retry += 1
         log_dropped()
 
 
     def update(self):
         self.current_time += 1
-        if (not self.detected_drop) and self.current_time > self.should_rec_time + self.window_size:
+        if self.dropped_retry == 0 and self.current_time > self.should_rec_time + self.window_size:
             self.handle_dropped_packet()
         if self.current_time == self.next_send_time:
             message={'text':'this is a test message'}
@@ -148,72 +142,32 @@ class Node(object):
         message['intrusion'] = self.detected_intrusion
         message['intrusion_resolved'] = self.intrusion_resolved
         message['real_intrusion'] = self.real_intrusion
-        message['dropped'] = self.detected_drop
-        message['drop_resolved'] = self.drop_resolved
-        message['hash'] = self.sending_hash
-        self.sending_hash = self.message_hash
+        message['dropped_retry'] = self.dropped_retry
 
         #Keep going if there's a real intrusion
         self.real_intrusion = False
 
         other.rec_message(message)
 
-def run_simulation(latency, jitter, window_size, first_delay, delay_mod, delay_bias, max_time, intrusion_prob):
+def run_simulation(latency, jitter, window_size, first_delay, delay_mod, delay_bias, max_time):
     alice = Node('alice',latency, jitter, window_size, 0, first_delay, delay_mod, delay_bias)
-    bob = Node('bob',latency, jitter, window_size, 0, first_delay, delay_mod, delay_bias)
 
-    alice.add_partner(bob)
-    bob.add_partner(alice)
+    in_window = 0
+    for i in range(100000):
+        delay = alice.calculate_send_delay()
+        if abs(delay-latency) <= window_size:
+            in_window += 1
+    print(in_window/100000*100,'% in window')
 
-    alice.start_send()
-
-    t = 0
-    #while t <= max_time:
-    global num_intrusion
-    global num_authed
-    while num_authed < 10000:
-        if t % 200000 == 0:
-            print(num_authed)
-            #print(num_intrusion)
-        alice.update()
-        bob.update()
-        if random.random() <= intrusion_prob:
-            num_intrusion += 1
-            trudy_msg = {
-                'text':'This is a message from trudy',
-                'next_delay':500,
-                'intrusion':False,
-                'intrusion_resolved':True,
-                'real_intrusion':False,
-                'dropped':False,
-                'drop_resolved':True,
-                'hash':'illegitimate'
-            }
-            if random.random() <= 0.5:
-                alice.rec_message(trudy_msg)
-                pass
-            else:
-                bob.rec_message(trudy_msg)
-                pass
-        t+= 1
-
-
-l = 1000
-j = 30
-ws = 20
+l = 10000
+j = 300
+ws = 27
 #fd = 1000
 #dm = 1000
 #db = 500
-fd = 100
-dm = 100
-db = 50
+fd = 0
+dm = 0
+db = 0
 mt = 10000000
-intrusion_prob = 0.01
-run_simulation(l,j,ws,fd,dm,db,mt,intrusion_prob/l)
-print('authed not_authed fixed dropped recovered intrusions intrusions_detected')
-print(num_authed,num_unauthed,num_intrusion_resolved,num_dropped,num_dropped_recovered,num_intrusion,num_intrusion_detected)
-print('%n',100-num_unauthed/(num_authed+num_unauthed)*100)
-print('%auth fixed',num_intrusion_resolved/(num_unauthed)*100)
-print('%dropped recovered',num_dropped_recovered/(num_dropped)*100)
-print('%intruded',100-num_intrusion_detected/num_intrusion*100)
+run_simulation(l,j,ws,fd,dm,db,mt)
 #TODO add trudy
