@@ -1,0 +1,80 @@
+--------------------------------------
+l j ws fd dm db
+1000 30 20 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 89 89 27 27 0 0
+%n 99.11785112498761
+%auth fixed 100.0
+%dropped recovered 100.0
+--------------------------------------
+l j ws fd dm db
+1000 30 15 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 514 504 188 197 0 0
+%n 95.11128019783146
+%auth fixed 98.0544747081712
+%dropped recovered 104.7872340425532
+--------------------------------------
+l j ws fd dm db
+1000 60 28 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 103 103 33 34 0 0
+%n 98.98050084133426
+%auth fixed 100.0
+%dropped recovered 103.03030303030303
+--------------------------------------
+l j ws fd dm db
+1000 60 21 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 523 509 203 207 0 0
+%n 95.02993442934525
+%auth fixed 97.32313575525812
+%dropped recovered 101.9704433497537
+--------------------------------------
+l j ws fd dm db
+1000 90 35 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 90 90 40 40 0 0
+%n 99.10802775024777
+%auth fixed 100.0
+%dropped recovered 100.0
+--------------------------------------
+l j ws fd dm db
+1000 90 26 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 530 519 230 238 0 0
+%n 94.9667616334283
+%auth fixed 97.9245283018868
+%dropped recovered 103.47826086956522
+--------------------------------------
+l j ws fd dm db
+1000 120 40 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 104 104 47 47 0 0
+%n 98.97070467141727
+%auth fixed 100.0
+%dropped recovered 100.0
+--------------------------------------
+l j ws fd dm db
+1000 120 30 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 522 512 210 218 0 0
+%n 95.03896597605018
+%auth fixed 98.08429118773945
+%dropped recovered 103.80952380952382
+--------------------------------------
+l j ws fd dm db
+1000 150 45 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 78 78 32 32 0 0
+%n 99.22603691208573
+%auth fixed 100.0
+%dropped recovered 100.0
+--------------------------------------
+l j ws fd dm db
+1000 150 34 100 100 50
+authed not_authed fixed dropped recovered intrusions intrusions_detected
+10000 503 494 214 220 0 0
+%n 95.21089212605922
+%auth fixed 98.2107355864811
+%dropped recovered 102.803738317757
